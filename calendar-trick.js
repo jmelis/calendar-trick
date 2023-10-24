@@ -75,43 +75,27 @@ function getYearCode(year) {
 }
 
 
-// Generate date
-year = randomIntFromInterval(2023, 2023);
-month = randomIntFromInterval(1, 6);
-day = randomIntFromInterval(1, getMonthDays(year, month));
+function generate() {
+    // Generate date
+    year = randomIntFromInterval(2023, 2023);
+    month = randomIntFromInterval(1, 6);
+    day = randomIntFromInterval(1, getMonthDays(year, month));
 
-document.getElementById("day").innerText = day;
-document.getElementById("month").innerText = month;
-document.getElementById("year").innerText = year;
-if (isLeapYear(year)) {
-    document.getElementById("year").innerText += '*';
+    document.getElementById("day").innerText = day;
+    document.getElementById("month").innerText = month;
+    document.getElementById("year").innerText = year;
+    if (isLeapYear(year)) {
+        document.getElementById("year").innerText += '*';
+    }
+
+    document.getElementById("day_code").innerText = getDayCode(day);
+    document.getElementById("month_code").innerText = getMonthCode(year, month);
+    document.getElementById("year_code").innerText = getYearCode(year);
+
+    code = (getDayCode(day) + getMonthCode(year, month) + getYearCode(year)) % 7;
+
+    const weekday = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    document.getElementById("code").innerHTML = `${getDayCode(day)} + ${getMonthCode(year, month)} + ${getYearCode(year)} &Congruent; ${code}<br/>${weekday[code]}`;
 }
 
-document.getElementById("day_code").innerText = getDayCode(day);
-document.getElementById("month_code").innerText = getMonthCode(year, month);
-document.getElementById("year_code").innerText = getYearCode(year);
-
-code = (getDayCode(day) + getMonthCode(year, month) + getYearCode(year)) % 7;
-
-const weekday = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-document.getElementById("code").innerText = weekday[code];
-
-// checkDate = new Date(year, month-1, day);
-// document.getElementById("check").innerText = weekday[checkDate.getDay()];
-
-// for (y=1600; y<=2400; y++) {
-//     for (m=1; m<=12; m++) {
-//         for (d=1; d<=getMonthDays(y, m); d++) {
-//             ycode = getYearCode(y);
-//             mcode = getMonthCode(y, m);
-//             dcode = getDayCode(d);
-
-//             code = (ycode + mcode + dcode) % 7;
-
-//             checkDate = new Date(y, m-1, d);
-
-//             if (checkDate.getDay() != code)
-//                 console.log([y,m,d]);
-//         }
-//     }
-// }
+generate();
