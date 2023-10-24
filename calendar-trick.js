@@ -122,7 +122,9 @@ function generate() {
   document.getElementById("solution").style.display = "none";
 
   // Generate date
-  year = randomIntFromInterval(2000, 2027);
+  const yearFrom = parseInt(document.getElementById("yearFrom").value);
+  const yearTo = parseInt(document.getElementById("yearTo").value);
+  year = randomIntFromInterval(yearFrom, yearTo);
   month = randomIntFromInterval(1, 12);
   day = randomIntFromInterval(1, getMonthDays(year, month));
 
