@@ -58,14 +58,14 @@ function getDayCode(day) {
 function getYearCode(year) {
     // 19xx is century 19
     // 20xx is century 20
-    century = Math.floor(year/100);
+    century = Math.floor(year / 100);
 
-    y2k = year - century*100;
+    y2k = year - century * 100;
     y2k %= 28;
 
-    prevLeap = Math.floor(y2k/4);
+    prevLeap = Math.floor(y2k / 4);
 
-    prevLeapCode = {0: 0, 4: 5, 8: 3, 12: 1, 16: 6, 20: 4, 24: 2}[prevLeap*4]
+    prevLeapCode = { 0: 0, 4: 5, 8: 3, 12: 1, 16: 6, 20: 4, 24: 2 }[prevLeap * 4]
     y2kcode = prevLeapCode + y2k % 4;
 
     // century correction
@@ -84,18 +84,21 @@ function generate() {
     document.getElementById("day").innerText = day;
     document.getElementById("month").innerText = month;
     document.getElementById("year").innerText = year;
-    if (isLeapYear(year)) {
+    if (isLeapYear(year))
         document.getElementById("year").innerText += '*';
-    }
 
-    document.getElementById("day_code").innerText = getDayCode(day);
-    document.getElementById("month_code").innerText = getMonthCode(year, month);
-    document.getElementById("year_code").innerText = getYearCode(year);
+    const dayCode = getDayCode(day);
+    const monthCode = getMonthCode(year, month);
+    const yearCode = getYearCode(year);
 
-    code = (getDayCode(day) + getMonthCode(year, month) + getYearCode(year)) % 7;
+    document.getElementById("day_code").innerText = dayCode;
+    document.getElementById("month_code").innerText = monthCode;
+    document.getElementById("year_code").innerText = yearCode;
+
+    const code = (dayCode + monthCode + yearCode) % 7;
 
     const weekday = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-    document.getElementById("code").innerHTML = `${getDayCode(day)} + ${getMonthCode(year, month)} + ${getYearCode(year)} &Congruent; ${code}<br/>${weekday[code]}`;
+    document.getElementById("code").innerHTML = `${dayCode} + ${monthCode} + ${yearCode} &Congruent; ${code}<br/>${weekday[code]}`;
 }
 
 generate();
