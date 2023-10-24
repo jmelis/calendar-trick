@@ -1,3 +1,11 @@
+function randomIntFromInterval(min, max) {
+  return Math.floor(Math.random() * (max - min + 1) + min);
+}
+
+function randomElement(array) {
+  return array[Math.floor(Math.random() * array.length)];
+}
+
 const WEEKDAY = [
   "Sunday",
   "Monday",
@@ -7,16 +15,6 @@ const WEEKDAY = [
   "Friday",
   "Saturday",
 ];
-
-const LEAP_YEAR_CODE = { 0: 0, 4: 5, 8: 3, 12: 1, 16: 6, 20: 4, 24: 2 };
-
-function randomIntFromInterval(min, max) {
-  return Math.floor(Math.random() * (max - min + 1) + min);
-}
-
-function randomElement(array) {
-  return array[Math.floor(Math.random() * array.length)];
-}
 
 function isLeapYear(year) {
   return (year % 4 == 0 && year % 100 != 0) || year % 400 == 0;
@@ -36,102 +34,116 @@ function getMonthDays(year, month) {
   }
 }
 
-function getMonthCode(year, month) {
-  let code;
+class CalendarDay {
+  constructor(year, month, day) {
+    this.year = year;
+    this.month = month;
+    this.day = day;
 
-  if ([1, 10].includes(month)) {
-    code = 6;
-  } else if ([4, 7].includes(month)) {
-    code = 5;
-  } else if ([9, 12].includes(month)) {
-    code = 4;
-  } else if ([6].includes(month)) {
-    code = 3;
-  } else if ([2, 3, 11].includes(month)) {
-    code = 2;
-  } else if ([8].includes(month)) {
-    code = 1;
-  } else {
-    code = 0;
+    this.century = Math.floor(this.year / 100);
+    this.centuryYear = (this.year - this.century * 100) % 28;
+    this.prevLeapYear = Math.floor(this.centuryYear / 4) * 4;
   }
 
-  // adjust for leap year
-  if ([1, 2].includes(month) && isLeapYear(year)) {
-    code -= 1;
+  dayCode() {
+    return this.day % 7;
   }
 
-  return code;
+  monthCode() {
+    if ([1, 10].includes(this.month)) {
+      return 6;
+    } else if ([4, 7].includes(this.month)) {
+      return 5;
+    } else if ([9, 12].includes(this.month)) {
+      return 4;
+    } else if ([6].includes(this.month)) {
+      return 3;
+    } else if ([2, 3, 11].includes(this.month)) {
+      return 2;
+    } else if ([8].includes(this.month)) {
+      return 1;
+    } else {
+      return 0;
+    }
+  }
+
+  prevLeapYearCode() {
+    return [0, 5, 3, 1, 6, 4, 2][this.prevLeapYear / 4];
+  }
+
+  remCode() {
+    return this.centuryYear % 4;
+  }
+
+  prevLeapYearCode() {
+    return [0, 5, 3, 1, 6, 4, 2][this.prevLeapYear / 4];
+  }
+
+  centuryCode() {
+    return [0, 5, 3, 1][this.century % 4];
+  }
+
+  leapYearCode() {
+    return isLeapYear(this.year) && [1, 2].includes(this.month) ? -1 : 0;
+  }
+
+  codes() {
+    return {
+      prevLeapYear: this.prevLeapYearCode(),
+      rem: this.remCode(),
+      century: this.centuryCode(),
+      leapYear: this.leapYearCode(),
+      month: this.monthCode(),
+      day: this.dayCode(),
+    };
+  }
+
+  code() {
+    return Object.values(this.codes()).reduce((a, b) => a + b) % 7;
+  }
+
+  weekday() {
+    return WEEKDAY[this.code() % 7];
+  }
 }
 
-function getDayCode(day) {
-  return day % 7;
-}
-
-function getYearCode(year) {
-  // 19xx is century 19
-  // 20xx is century 20
-  century = Math.floor(year / 100);
-
-  y2k = year - century * 100;
-  y2k %= 28;
-
-  prevLeap = Math.floor(y2k / 4);
-
-  prevLeapCode = LEAP_YEAR_CODE[prevLeap * 4];
-  y2kcode = prevLeapCode + (y2k % 4);
-
-  // century correction
-  yearcode = y2kcode + [0, 5, 3, 1][century % 4];
-
-  return yearcode;
-}
-
-function getYearCodeMod28(year) {
-  century = Math.floor(year / 100);
-  y2k = year - century * 100;
-  y2k %= 28;
-  return y2k;
-}
-
-function getYearCodePrevLeapYear(y2k) {
-  return Math.floor(y2k / 4);
+function listToUl(list) {
+  let ul = document.createElement('ul');
+  list.forEach((e) => {
+    let li = document.createElement('li');
+    li.innerText = e;
+    ul.appendChild(li);
+  })
+  return ul;
 }
 
 function generate() {
+  // Hide solution
+  document.getElementById("solution").style.display = "none";
+
   // Generate date
-  year = randomIntFromInterval(2023, 2023);
-  month = randomIntFromInterval(1, 6);
+  year = randomIntFromInterval(2000, 2027);
+  month = randomIntFromInterval(1, 12);
   day = randomIntFromInterval(1, getMonthDays(year, month));
 
-  document.getElementById("day").innerText = day;
-  document.getElementById("month").innerText = month;
-  document.getElementById("year").innerText = year;
-  if (isLeapYear(year)) document.getElementById("year").innerText += "*";
+  calday = new CalendarDay(year, month, day);
 
-  const dayCode = getDayCode(day);
-  const monthCode = getMonthCode(year, month);
-  const yearCode = getYearCode(year);
+  document.getElementById("date").innerText = `${year}-${month}-${day}`;
+  document.getElementById("solution").innerText = calday.weekday();
 
-  document.getElementById("day_code").innerText = dayCode;
-  document.getElementById("month_code").innerText = monthCode;
-  document.getElementById("year_code").innerText = yearCode;
+  let items = [];
+  items.push(`centuryYearMod28: ${calday.centuryYear}`);
+  items.push(`prevLeapYear: ${calday.prevLeapYear}`);
+  for (const [key, value] of Object.entries(calday.codes())) {
+    items.push(`code:${key}: ${value}`);
+  }
+  items.push(`total: ${calday.code()}`);
 
-  const code = (dayCode + monthCode + yearCode) % 7;
+  document.getElementById("solution").appendChild(listToUl(items));
+}
 
-  document.getElementById(
-    "code"
-  ).innerHTML = `${dayCode} + ${monthCode} + ${yearCode} &Congruent; ${code}<br/>${WEEKDAY[code]}`;
-
-  century = Math.floor(year / 100);
-  y2k = getYearCodeMod28(year);
-  prevLeapYear = getYearCodePrevLeapYear(y2k);
-  rem = y2k % 4;
-  prevLeapYearCode = LEAP_YEAR_CODE[prevLeapYear * 4];
-  centCode = [0, 5, 3, 1][century % 4];
-
-  document.getElementById("year_code_mod28").innerText = `${
-    century * 100 + prevLeapYear * 4
-  } + ${rem} => ${prevLeapYearCode} (ly) + ${rem} (rem) + ${centCode} (cent)`;
+function solution() {
+  document.getElementById("solution").style.display = "block";
 }
 
 generate();
