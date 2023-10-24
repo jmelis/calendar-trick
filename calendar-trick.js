@@ -8,6 +8,8 @@ const WEEKDAY = [
   "Saturday",
 ];
 
+const LEAP_YEAR_CODE = { 0: 0, 4: 5, 8: 3, 12: 1, 16: 6, 20: 4, 24: 2 };
+
 function randomIntFromInterval(min, max) {
   return Math.floor(Math.random() * (max - min + 1) + min);
 }
@@ -75,13 +77,24 @@ function getYearCode(year) {
 
   prevLeap = Math.floor(y2k / 4);
 
-  prevLeapCode = { 0: 0, 4: 5, 8: 3, 12: 1, 16: 6, 20: 4, 24: 2 }[prevLeap * 4];
+  prevLeapCode = LEAP_YEAR_CODE[prevLeap * 4];
   y2kcode = prevLeapCode + (y2k % 4);
 
   // century correction
   yearcode = y2kcode + [0, 5, 3, 1][century % 4];
 
   return yearcode;
+}
+
+function getYearCodeMod28(year) {
+  century = Math.floor(year / 100);
+  y2k = year - century * 100;
+  y2k %= 28;
+  return y2k;
+}
+
+function getYearCodePrevLeapYear(y2k) {
+  return Math.floor(y2k / 4);
 }
 
 function generate() {
@@ -108,6 +121,17 @@ function generate() {
   document.getElementById(
     "code"
   ).innerHTML = `${dayCode} + ${monthCode} + ${yearCode} &Congruent; ${code}<br/>${WEEKDAY[code]}`;
+
+  century = Math.floor(year / 100);
+  y2k = getYearCodeMod28(year);
+  prevLeapYear = getYearCodePrevLeapYear(y2k);
+  rem = y2k % 4;
+  prevLeapYearCode = LEAP_YEAR_CODE[prevLeapYear * 4];
+  centCode = [0, 5, 3, 1][century % 4];
+
+  document.getElementById("year_code_mod28").innerText = `${
+    century * 100 + prevLeapYear * 4
+  } + ${rem} => ${prevLeapYearCode} (ly) + ${rem} (rem) + ${centCode} (cent)`;
 }
 
 generate();
