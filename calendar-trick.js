@@ -1,3 +1,7 @@
+let WINS, ATTEMPTS;
+WINS = 0;
+ATTEMPTS = 0;
+
 function randomIntFromInterval(min, max) {
   return Math.floor(Math.random() * (max - min + 1) + min);
 }
@@ -124,6 +128,7 @@ function listToUl(list) {
 }
 
 function generate() {
+  updateScore();
   // Activate all buttons
   document
     .querySelectorAll("#solutions button")
@@ -167,6 +172,10 @@ function generate() {
     <p>Code: ${calday.code()} therefore it is a ${calday.weekday()}.</p>`;
 }
 
+function updateScore() {
+  document.getElementById("score").innerText = `${WINS}/${ATTEMPTS}`;
+}
+
 function showHelp() {
   document.getElementById("help").style.display = "block";
 }
@@ -174,10 +183,14 @@ function showHelp() {
 function check(btn) {
   const weekday = document.getElementById("solution").innerText;
   const val = btn.innerText;
-
   if (weekday == val) {
+    WINS++;
+    ATTEMPTS++;
+    updateScore();
     document.getElementById("btn-go").click();
   } else {
+    ATTEMPTS++;
+    updateScore();
     btn["disabled"] = true;
   }
 }
