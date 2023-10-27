@@ -4,15 +4,6 @@ tTemp = 0;
 WINS = 0;
 ATTEMPTS = 0;
 
-
-function randomIntFromInterval(min, max) {
-  return Math.floor(Math.random() * (max - min + 1) + min);
-}
-
-function randomElement(array) {
-  return array[Math.floor(Math.random() * array.length)];
-}
-
 const WEEKDAY = [
   "Sunday",
   "Monday",
@@ -22,6 +13,14 @@ const WEEKDAY = [
   "Friday",
   "Saturday",
 ];
+
+function randomIntFromInterval(min, max) {
+  return Math.floor(Math.random() * (max - min + 1) + min);
+}
+
+function randomElement(array) {
+  return array[Math.floor(Math.random() * array.length)];
+}
 
 function isLeapYear(year) {
   return (year % 4 == 0 && year % 100 != 0) || year % 400 == 0;
@@ -139,17 +138,17 @@ function generate() {
   // Generate date
   let yearsList = [];
   const years = document.getElementById("years").value;
-  window.location.hash = '#' + years;
-  years.split(",").forEach(segment => {
+  window.location.hash = "#" + years;
+  years.split(",").forEach((segment) => {
     if (segment.includes("-")) {
       const [yf, yt] = segment.split("-");
-      for (i=parseInt(yf); i<=parseInt(yt); i++) {
+      for (i = parseInt(yf); i <= parseInt(yt); i++) {
         yearsList.push(i);
       }
     } else {
       yearsList.push(parseInt(segment));
     }
-  })
+  });
 
   year = randomElement(yearsList);
   month = randomIntFromInterval(1, 12);
@@ -175,7 +174,6 @@ function generate() {
 
 function updateScore() {
   document.getElementById("score").innerText = `${WINS}/${ATTEMPTS}`;
-
 }
 
 function showHelp() {
@@ -191,11 +189,13 @@ function check(btn) {
 
     updateScore();
 
-    const lastTime = (new Date() - tTemp) / 1000
+    const lastTime = (new Date() - tTemp) / 1000;
 
     totalTime += lastTime;
     document.getElementById("last-time").innerText = lastTime.toFixed(1);
-    document.getElementById("avg-time").innerText = (totalTime / WINS).toFixed(1);
+    document.getElementById("avg-time").innerText = (totalTime / WINS).toFixed(
+      1
+    );
 
     document.getElementById("btn-go").click();
   } else {
@@ -205,21 +205,27 @@ function check(btn) {
   }
 }
 
-if (window.location.hash) {
-  document.getElementById("years").value = window.location.hash.substring(1);
-}
-
-generate();
-
-// verify algorithm works
-for (y=1600; y<=2400; y++) {
-  for (m=1; m<=12; m++) {
-    for (d=1; d<=getMonthDays(y,m); d++) {
-      const calday = new CalendarDay(y,m,d);
-      const checkdate = new Date(y, m-1, d);
-      if (calday.code() != checkdate.getDay()) {
-        alert(`error! ${y}-${m}-${d}: ${calday.code()} vs ${checkdate.getDay()}`)
+function checkAlgorithm() {
+  // verify algorithm works
+  for (y = 1600; y <= 2400; y++) {
+    for (m = 1; m <= 12; m++) {
+      for (d = 1; d <= getMonthDays(y, m); d++) {
+        const calday = new CalendarDay(y, m, d);
+        const checkdate = new Date(y, m - 1, d);
+        if (calday.code() != checkdate.getDay()) {
+          alert(
+            `error! ${y}-${m}-${d}: ${calday.code()} vs ${checkdate.getDay()}`
+          );
+          return;
+        }
       }
     }
   }
 }
+
+if (window.location.hash) {
+  document.getElementById("years").value = window.location.hash.substring(1);
+}
+
+checkAlgorithm();
+generate();
