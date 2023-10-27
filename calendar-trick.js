@@ -1,6 +1,9 @@
-let WINS, ATTEMPTS;
+let WINS, ATTEMPTS, tTemp, totalTime;
+totalTime = 0;
+tTemp = 0;
 WINS = 0;
 ATTEMPTS = 0;
+
 
 function randomIntFromInterval(min, max) {
   return Math.floor(Math.random() * (max - min + 1) + min);
@@ -93,16 +96,11 @@ class CalendarDay {
     return [0, 5, 3, 1][this.century % 4];
   }
 
-  leapYearCode() {
-    return isLeapYear(this.year) && [1, 2].includes(this.month) ? -1 : 0;
-  }
-
   codes() {
     return {
       prevLeapYear: this.prevLeapYearCode(),
       rem: this.remCode(),
       century: this.centuryCode(),
-      leapYear: this.leapYearCode(),
       month: this.monthCode(),
       day: this.dayCode(),
     };
@@ -128,6 +126,7 @@ function listToUl(list) {
 }
 
 function generate() {
+  tTemp = new Date();
   updateScore();
   // Activate all buttons
   document
@@ -140,6 +139,7 @@ function generate() {
   // Generate date
   let yearsList = [];
   const years = document.getElementById("years").value;
+  window.location.hash = '#' + years;
   years.split(",").forEach(segment => {
     if (segment.includes("-")) {
       const [yf, yt] = segment.split("-");
@@ -154,6 +154,7 @@ function generate() {
   year = randomElement(yearsList);
   month = randomIntFromInterval(1, 12);
   day = randomIntFromInterval(1, getMonthDays(year, month));
+
   calday = new CalendarDay(year, month, day);
 
   document.getElementById("date").innerText = `${year}-${month}-${day}`;
@@ -174,6 +175,7 @@ function generate() {
 
 function updateScore() {
   document.getElementById("score").innerText = `${WINS}/${ATTEMPTS}`;
+
 }
 
 function showHelp() {
@@ -186,7 +188,15 @@ function check(btn) {
   if (weekday == val) {
     WINS++;
     ATTEMPTS++;
+
     updateScore();
+
+    const lastTime = (new Date() - tTemp) / 1000
+
+    totalTime += lastTime;
+    document.getElementById("last-time").innerText = lastTime.toFixed(1);
+    document.getElementById("avg-time").innerText = (totalTime / WINS).toFixed(1);
+
     document.getElementById("btn-go").click();
   } else {
     ATTEMPTS++;
@@ -198,4 +208,18 @@ function check(btn) {
 if (window.location.hash) {
   document.getElementById("years").value = window.location.hash.substring(1);
 }
+
 generate();
+
+// verify algorithm works
+for (y=1600; y<=2400; y++) {
+  for (m=1; m<=12; m++) {
+    for (d=1; d<=getMonthDays(y,m); d++) {
+      const calday = new CalendarDay(y,m,d);
+      const checkdate = new Date(y, m-1, d);
+      if (calday.code() != checkdate.getDay()) {
+        alert(`error! ${y}-${m}-${d}: ${calday.code()} vs ${checkdate.getDay()}`)
+      }
+    }
+  }
+}
