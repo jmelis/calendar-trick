@@ -118,8 +118,15 @@ function listToUl(list) {
 }
 
 function generate() {
-  // Hide solution
-  document.getElementById("solution").style.display = "none";
+  // Activate all buttons
+  document.querySelectorAll("#solutions button").forEach((e)=>{
+    e["disabled"]=false;
+    // console.log(e.style.pointerEvents);
+    // e.style.pointerEvents = "none";
+    // e.style.pointerEvents = "auto";
+  });
+
+  // document.getElementById("solution").style.display = "none";
 
   // Generate date
   const yearFrom = parseInt(document.getElementById("yearFrom").value);
@@ -127,25 +134,22 @@ function generate() {
   year = randomIntFromInterval(yearFrom, yearTo);
   month = randomIntFromInterval(1, 12);
   day = randomIntFromInterval(1, getMonthDays(year, month));
-
   calday = new CalendarDay(year, month, day);
 
   document.getElementById("date").innerText = `${year}-${month}-${day}`;
   document.getElementById("solution").innerText = calday.weekday();
-
-  let items = [];
-  items.push(`centuryYearMod28: ${calday.centuryYear}`);
-  items.push(`prevLeapYear: ${calday.prevLeapYear}`);
-  for (const [key, value] of Object.entries(calday.codes())) {
-    items.push(`code:${key}: ${value}`);
-  }
-  items.push(`total: ${calday.code()}`);
-
-  document.getElementById("solution").appendChild(listToUl(items));
 }
 
-function solution() {
-  document.getElementById("solution").style.display = "block";
+
+function check(btn) {
+  const weekday = document.getElementById("solution").innerText;
+  const val = btn.innerText;
+
+  if (weekday == val) {
+    generate()
+  } else {
+    btn["disabled"] = true;
+  }
 }
 
 generate();
