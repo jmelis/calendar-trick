@@ -195,4 +195,7 @@ function check(btn) {
   }
 }
 
+if (window.location.hash) {
+  document.getElementById("years").value = window.location.hash.substring(1);
+}
 generate();
