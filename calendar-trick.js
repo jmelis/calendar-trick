@@ -165,7 +165,7 @@ function check(btn) {
   const val = btn.innerText;
 
   if (weekday == val) {
-    generate();
+    document.getElementById("btn-go").click();
   } else {
     btn["disabled"] = true;
   }
