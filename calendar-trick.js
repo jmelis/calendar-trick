@@ -133,9 +133,20 @@ function generate() {
   document.getElementById("help").style.display = "none";
 
   // Generate date
-  const yearFrom = parseInt(document.getElementById("yearFrom").value);
-  const yearTo = parseInt(document.getElementById("yearTo").value);
-  year = randomIntFromInterval(yearFrom, yearTo);
+  let yearsList = [];
+  const years = document.getElementById("years").value;
+  years.split(",").forEach(segment => {
+    if (segment.includes("-")) {
+      const [yf, yt] = segment.split("-");
+      for (i=parseInt(yf); i<=parseInt(yt); i++) {
+        yearsList.push(i);
+      }
+    } else {
+      yearsList.push(parseInt(segment));
+    }
+  })
+
+  year = randomElement(yearsList);
   month = randomIntFromInterval(1, 12);
   day = randomIntFromInterval(1, getMonthDays(year, month));
   calday = new CalendarDay(year, month, day);
