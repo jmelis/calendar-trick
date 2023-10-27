@@ -50,21 +50,27 @@ class CalendarDay {
   }
 
   monthCode() {
-    if ([1, 10].includes(this.month)) {
-      return 6;
-    } else if ([4, 7].includes(this.month)) {
-      return 5;
-    } else if ([9, 12].includes(this.month)) {
-      return 4;
-    } else if ([6].includes(this.month)) {
-      return 3;
-    } else if ([2, 3, 11].includes(this.month)) {
-      return 2;
-    } else if ([8].includes(this.month)) {
-      return 1;
-    } else {
-      return 0;
+    let codes = {
+      1: 6,
+      2: 2,
+      3: 2,
+      4: 5,
+      5: 0,
+      6: 3,
+      7: 5,
+      8: 1,
+      9: 4,
+      10: 6,
+      11: 2,
+      12: 4,
+    };
+
+    if (isLeapYear(this.year)) {
+      codes[1] = 5;
+      codes[2] = 1;
     }
+
+    return codes[this.month];
   }
 
   prevLeapYearCode() {
@@ -108,25 +114,23 @@ class CalendarDay {
 }
 
 function listToUl(list) {
-  let ul = document.createElement('ul');
+  let ul = document.createElement("ul");
   list.forEach((e) => {
-    let li = document.createElement('li');
+    let li = document.createElement("li");
     li.innerText = e;
     ul.appendChild(li);
-  })
+  });
   return ul;
 }
 
 function generate() {
   // Activate all buttons
-  document.querySelectorAll("#solutions button").forEach((e)=>{
-    e["disabled"]=false;
-    // console.log(e.style.pointerEvents);
-    // e.style.pointerEvents = "none";
-    // e.style.pointerEvents = "auto";
-  });
+  document
+    .querySelectorAll("#solutions button")
+    .forEach((e) => (e["disabled"] = false));
 
-  // document.getElementById("solution").style.display = "none";
+  // hide help
+  document.getElementById("help").style.display = "none";
 
   // Generate date
   const yearFrom = parseInt(document.getElementById("yearFrom").value);
@@ -138,15 +142,30 @@ function generate() {
 
   document.getElementById("date").innerText = `${year}-${month}-${day}`;
   document.getElementById("solution").innerText = calday.weekday();
+
+  document.getElementById("help").innerHTML = `<p>Equivalent year is ${
+    calday.centuryYear
+  }, ${isLeapYear(year) ? "" : "not"} a LY.</p>
+    <p>Previous LY is  ${
+      calday.prevLeapYear
+    }: code ${calday.prevLeapYearCode()}.</p>
+    <p>Years since LY: code ${calday.remCode()}.</p>
+    <p>Century ${calday.century}00: code ${calday.centuryCode()}.</p>
+    <p>Month: code ${calday.monthCode()}.</p>
+    <p>Day: code ${calday.dayCode()}.</p>
+    <p>Code: ${calday.code()} therefore it is a ${calday.weekday()}.</p>`;
 }
 
+function showHelp() {
+  document.getElementById("help").style.display = "block";
+}
 
 function check(btn) {
   const weekday = document.getElementById("solution").innerText;
   const val = btn.innerText;
 
   if (weekday == val) {
-    generate()
+    generate();
   } else {
     btn["disabled"] = true;
   }
