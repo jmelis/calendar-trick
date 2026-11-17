@@ -1,0 +1,972 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Calendar Trick Trainer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+  /* Layout: one column. Walkthrough (tear-off date sheet + week dial beside numbered steps), then the code sheet, then drills. */
+  :root {
+    --paper: #eef1f5;
+    --card: #ffffff;
+    --ink: #17202c;
+    --muted: #5a6577;
+    --line: #d6dce5;
+    --accent: #2445c4;
+    --accent-soft: #e2e8fb;
+    --on-accent: #ffffff;
+    --sunday: #c4303a;
+    --good: #1b7f4b;
+    --good-soft: #dcf1e5;
+    --bad: #c4303a;
+    --bad-soft: #fbe2e4;
+    --shadow: rgba(23, 32, 44, 0.28);
+
+    --display: "Big Shoulders Display", "Arial Narrow", "Helvetica Neue", sans-serif;
+    --body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #10141a;
+      --card: #19202a;
+      --ink: #e6eaf0;
+      --muted: #97a1b2;
+      --line: #2b3442;
+      --accent: #8fa7ff;
+      --accent-soft: #222b47;
+      --on-accent: #0d1120;
+      --sunday: #ff7c82;
+      --good: #5fcf92;
+      --good-soft: #15301f;
+      --bad: #ff7c82;
+      --bad-soft: #3a1c20;
+      --shadow: rgba(0, 0, 0, 0.6);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #10141a;
+    --card: #19202a;
+    --ink: #e6eaf0;
+    --muted: #97a1b2;
+    --line: #2b3442;
+    --accent: #8fa7ff;
+    --accent-soft: #222b47;
+    --on-accent: #0d1120;
+    --sunday: #ff7c82;
+    --good: #5fcf92;
+    --good-soft: #15301f;
+    --bad: #ff7c82;
+    --bad-soft: #3a1c20;
+    --shadow: rgba(0, 0, 0, 0.6);
+    color-scheme: dark;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font: 400 1rem/1.55 var(--body);
+  }
+  .wrap {
+    max-width: 62rem;
+    margin: 0 auto;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-block: 2.5rem 4rem;
+    display: grid;
+    gap: 3.5rem;
+  }
+
+  .eyebrow {
+    font: 600 0.75rem/1 var(--mono);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0;
+  }
+  h1 {
+    font: 800 clamp(2.4rem, 7vw, 3.9rem)/0.95 var(--display);
+    text-transform: uppercase;
+    letter-spacing: 0.01em;
+    margin: 0.5rem 0 0.9rem;
+    text-wrap: balance;
+  }
+  h2 {
+    font: 800 2rem/1.05 var(--display);
+    text-transform: uppercase;
+    letter-spacing: 0.01em;
+    margin: 0;
+    text-wrap: balance;
+  }
+  h3 {
+    font: 600 0.75rem/1.2 var(--mono);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    margin: 0;
+  }
+  .formula {
+    font: 500 1rem/1.5 var(--mono);
+    color: var(--muted);
+    margin: 0;
+  }
+  .formula b { color: var(--ink); font-weight: 600; }
+  .lede { color: var(--muted); margin: 0.4rem 0 0; max-width: 62ch; }
+  .toc { display: flex; flex-wrap: wrap; gap: 0.4rem 1.2rem; margin-top: 1.1rem; font: 500 0.9rem var(--body); }
+  .toc a { color: var(--accent); text-decoration: none; border-bottom: 1px solid var(--accent-soft); }
+  .toc a:hover { border-color: var(--accent); }
+
+  section { display: grid; gap: 1.25rem; }
+  .sec-head { display: flex; justify-content: space-between; align-items: end; gap: 0.75rem 1rem; flex-wrap: wrap; }
+
+  button {
+    font: 500 0.95rem/1 var(--body);
+    color: var(--ink);
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 0.62rem 0.9rem;
+    cursor: pointer;
+  }
+  button:hover { border-color: var(--muted); }
+  button.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+  button:disabled { opacity: 0.45; cursor: default; }
+  button:disabled:hover { border-color: var(--line); }
+  button.primary:disabled:hover { border-color: var(--accent); }
+  button.armed { background: var(--bad-soft); border-color: var(--bad); color: var(--bad); }
+  input, select {
+    font: inherit;
+    color: var(--ink);
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 0.5rem 0.6rem;
+  }
+  :is(button, input, select, a, .step[data-state="next"], .c):focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  /* Walkthrough */
+  .controls { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+  .controls label { font: 600 0.75rem var(--mono); text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); }
+  .note { color: var(--bad); font-size: 0.9rem; margin: 0; }
+
+  .walk { display: grid; grid-template-columns: 14rem minmax(0, 1fr); gap: 1.5rem; align-items: start; }
+  .aside { display: grid; gap: 1rem; justify-items: center; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 1rem); }
+  .sheet {
+    width: 100%;
+    max-width: 13rem;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    overflow: hidden;
+    text-align: center;
+    box-shadow: 0 10px 22px -16px var(--shadow);
+  }
+  .sheet-band {
+    background: var(--accent);
+    color: var(--on-accent);
+    display: flex;
+    justify-content: space-between;
+    padding: 0.55rem 0.8rem;
+    font: 700 1.05rem/1 var(--display);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .sheet-day { font: 800 6rem/1 var(--display); padding: 0.8rem 0 0.2rem; font-variant-numeric: tabular-nums; }
+  .sheet-wd { font: 600 0.85rem/1 var(--mono); letter-spacing: 0.14em; text-transform: uppercase; padding: 0 0 1.1rem; color: var(--muted); }
+  .sheet.is-sunday .sheet-day, .sheet.is-sunday .sheet-wd { color: var(--sunday); }
+  .sheet.solved .sheet-wd { color: var(--ink); }
+  .sheet.solved.is-sunday .sheet-wd { color: var(--sunday); }
+
+  .dial-box { display: grid; gap: 0.35rem; justify-items: center; width: 100%; }
+  #dial { width: 100%; max-width: 13rem; height: auto; display: block; }
+  .dial-ring { fill: var(--card); stroke: var(--line); stroke-width: 1; }
+  .dial-label { fill: var(--muted); font: 600 11px var(--mono); text-anchor: middle; dominant-baseline: central; }
+  .dial-num { fill: var(--muted); font: 500 10px var(--mono); text-anchor: middle; dominant-baseline: central; opacity: 0.75; }
+  .dial-label.sun { fill: var(--sunday); }
+  .dial-label.on, .dial-num.on { fill: var(--accent); opacity: 1; }
+  .needle-line { stroke: var(--accent); stroke-width: 3; stroke-linecap: round; }
+  .needle-tip, .hub { fill: var(--accent); }
+  #needle { transform-box: view-box; transform-origin: 100px 100px; transition: transform 0.55s cubic-bezier(0.3, 0.7, 0.3, 1); }
+  .dial-cap { font: 500 0.8rem/1.3 var(--mono); color: var(--muted); text-align: center; margin: 0; font-variant-numeric: tabular-nums; }
+  .dial-cap b { color: var(--ink); }
+
+  .steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.5rem; counter-reset: step; }
+  .step {
+    display: grid;
+    grid-template-columns: 1.4rem minmax(0, 1fr) auto;
+    gap: 0.75rem;
+    align-items: start;
+    padding: 0.8rem 0.95rem;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  .step::before { counter-increment: step; content: counter(step); font: 600 0.8rem/1.6 var(--mono); color: var(--muted); }
+  .step-main { min-width: 0; }
+  .step-label { font: 600 0.7rem/1.2 var(--mono); text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); }
+  .step-q { margin-top: 0.2rem; }
+  .step-a { font: 500 0.92rem/1.45 var(--mono); color: var(--accent); margin-top: 0.25rem; overflow-wrap: anywhere; }
+  .step-val { font: 800 1.7rem/1 var(--display); font-variant-numeric: tabular-nums; min-width: 2.6ch; text-align: right; padding-top: 0.1rem; }
+  .step[data-state="hidden"] { opacity: 0.55; }
+  .step[data-state="hidden"] .step-a, .step[data-state="next"] .step-a { display: none; }
+  .step[data-state="hidden"] .step-val, .step[data-state="next"] .step-val { color: var(--line); }
+  .step[data-state="next"] { border-color: var(--accent); cursor: pointer; box-shadow: 0 0 0 1px var(--accent); }
+  .step[data-state="next"]::after {
+    content: "Tap to reveal";
+    grid-column: 2;
+    font: 500 0.75rem var(--mono);
+    color: var(--accent);
+  }
+  .step-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+
+  @media (max-width: 720px) {
+    .walk { grid-template-columns: minmax(0, 1fr); }
+    .aside { grid-template-columns: 1fr 1fr; align-items: center; position: static; }
+    .sheet-day { font-size: 4.6rem; }
+  }
+
+  /* Code sheet */
+  .toggle { display: inline-flex; gap: 0.5rem; align-items: center; font-size: 0.92rem; color: var(--muted); cursor: pointer; }
+  .toggle input { width: 1.05rem; height: 1.05rem; accent-color: var(--accent); }
+  .ref-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr)); gap: 1rem; }
+  .ref {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 1rem 1.1rem 1.1rem;
+    display: grid;
+    gap: 0.7rem;
+    align-content: start;
+    min-width: 0;
+  }
+  .table-scroll { overflow-x: auto; }
+  .codes { width: 100%; border-collapse: collapse; font: 500 0.9rem/1.3 var(--mono); font-variant-numeric: tabular-nums; }
+  .codes th, .codes td { padding: 0.35rem 0.3rem; border-bottom: 1px solid var(--line); text-align: left; white-space: nowrap; }
+  .codes tr:last-child th, .codes tr:last-child td { border-bottom: 0; }
+  .codes th { font-weight: 500; color: var(--muted); }
+  .codes.grid7 th, .codes.grid7 td { text-align: center; }
+  .codes .sun { color: var(--sunday); }
+  .c { color: var(--accent); font-weight: 600; border-radius: 3px; padding: 0 0.15rem; }
+  .codes td.num { text-align: right; }
+  body.covered .c { color: transparent; background: var(--line); cursor: pointer; }
+  body.covered .c.peek { color: var(--accent); background: var(--accent-soft); }
+  .tip { font-size: 0.9rem; color: var(--muted); margin: 0; }
+  .tip strong { color: var(--ink); font: 600 0.88rem var(--mono); }
+
+  /* Drills */
+  .tabs { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .tab { display: inline-flex; gap: 0.5rem; align-items: center; border-radius: 999px; padding: 0.5rem 0.85rem; }
+  .tab .n { font: 600 0.7rem var(--mono); color: var(--muted); }
+  .tab[aria-selected="true"] { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+  .tab[aria-selected="true"] .n { color: var(--paper); opacity: 0.7; }
+  .drill {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 1.4rem clamp(1rem, 3vw, 1.75rem) 1.5rem;
+    display: grid;
+    gap: 1.1rem;
+  }
+  .drill-top { display: flex; justify-content: space-between; gap: 0.6rem 1rem; flex-wrap: wrap; align-items: center; color: var(--muted); font-size: 0.93rem; }
+  .drill-top p { margin: 0; max-width: 60ch; }
+  .drill-opts { display: flex; gap: 0.5rem; align-items: center; }
+  .drill-opts label { font: 600 0.72rem var(--mono); text-transform: uppercase; letter-spacing: 0.1em; }
+  .prompt-wrap { display: grid; gap: 0.3rem; justify-items: center; padding-block: 0.6rem; }
+  .prompt { font: 800 clamp(2.8rem, 10vw, 4.6rem)/1 var(--display); text-align: center; text-transform: uppercase; letter-spacing: 0.01em; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+  .prompt-sub { color: var(--muted); font: 500 0.82rem var(--mono); text-transform: uppercase; letter-spacing: 0.1em; text-align: center; min-height: 1.2em; }
+  .answers { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 0.4rem; }
+  .answers button { padding: 0.95rem 0; font: 700 1.35rem/1 var(--display); letter-spacing: 0.04em; text-transform: uppercase; }
+  .answers button.right { background: var(--good-soft); border-color: var(--good); color: var(--good); }
+  .answers button.wrong { background: var(--bad-soft); border-color: var(--bad); color: var(--bad); }
+  .number-answer { display: flex; gap: 0.5rem; justify-content: center; grid-column: 1 / -1; }
+  .number-answer input { width: 6rem; font: 700 1.6rem/1 var(--display); text-align: center; }
+  .number-answer input.right { border-color: var(--good); color: var(--good); background: var(--good-soft); }
+  .number-answer input.wrong { border-color: var(--bad); color: var(--bad); background: var(--bad-soft); }
+  .feedback { min-height: 3rem; display: grid; gap: 0.55rem; justify-items: center; text-align: center; }
+  .feedback .ok { color: var(--good); font-weight: 600; }
+  .feedback .no { color: var(--bad); font-weight: 600; }
+  .feedback .why { font: 500 0.9rem/1.5 var(--mono); max-width: 60ch; overflow-wrap: anywhere; }
+  .fb-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: center; }
+  .stats { display: flex; flex-wrap: wrap; gap: 0.3rem 1.3rem; justify-content: center; font: 500 0.8rem var(--mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+  .stats b { color: var(--ink); font-weight: 600; }
+  .mastery { display: grid; gap: 0.6rem; justify-items: center; border-top: 1px solid var(--line); padding-top: 1rem; }
+  .mastery-label { font: 500 0.78rem var(--mono); color: var(--muted); text-align: center; }
+  .chips { display: flex; flex-wrap: wrap; gap: 0.3rem; justify-content: center; }
+  .chip { font: 600 0.72rem/1 var(--mono); padding: 0.38rem 0.45rem; border-radius: 4px; border: 1px solid var(--line); color: var(--muted); min-width: 2.3rem; text-align: center; }
+  .chip.miss { background: var(--bad-soft); border-color: transparent; color: var(--bad); }
+  .chip.learning { background: var(--accent-soft); border-color: transparent; color: var(--accent); }
+  .chip.done { background: var(--good-soft); border-color: transparent; color: var(--good); }
+  .meter { width: min(22rem, 100%); height: 8px; background: var(--line); border-radius: 4px; overflow: hidden; }
+  .meter span { display: block; height: 100%; background: var(--good); }
+  .legend { display: flex; flex-wrap: wrap; gap: 0.3rem 0.9rem; justify-content: center; font: 500 0.72rem var(--mono); color: var(--muted); }
+  .legend i { display: inline-block; width: 0.7rem; height: 0.7rem; border-radius: 2px; margin-right: 0.3rem; vertical-align: -0.05rem; border: 1px solid var(--line); }
+  .legend .l-miss { background: var(--bad-soft); border-color: var(--bad); }
+  .legend .l-learning { background: var(--accent-soft); border-color: var(--accent); }
+  .legend .l-done { background: var(--good-soft); border-color: var(--good); }
+
+  @media (max-width: 480px) {
+    .answers button { font-size: 1.1rem; padding: 0.85rem 0; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    #needle { transition: none; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <p class="eyebrow">Calendar Trick</p>
+    <h1>Find the weekday of any date</h1>
+    <p class="formula">weekday = (<b>day</b> + <b>month</b> + <b>year</b> + <b>century</b>) mod 7</p>
+    <nav class="toc" aria-label="Sections">
+      <a href="#walk">Walk through a date</a>
+      <a href="#codes">The codes</a>
+      <a href="#drills">Drills</a>
+    </nav>
+  </header>
+
+  <section id="walk" aria-labelledby="walk-h">
+    <div>
+      <h2 id="walk-h">Walk through a date</h2>
+      <p class="lede">Pick a date and reveal one step at a time. Work each step out in your head before you reveal it. The dial moves forward through the week as you add each code.</p>
+    </div>
+    <div class="controls">
+      <label for="walk-date">Date</label>
+      <input type="date" id="walk-date" min="1583-01-01" max="9999-12-31">
+      <button type="button" id="walk-random">Random date</button>
+      <button type="button" id="walk-today">Today</button>
+    </div>
+    <p class="note" id="walk-note" hidden>Pick a date in 1583 or later. That's when the Gregorian calendar started.</p>
+    <div class="walk">
+      <div class="aside">
+        <div class="sheet" id="sheet">
+          <div class="sheet-band"><span id="sheet-month"></span><span id="sheet-year"></span></div>
+          <div class="sheet-day" id="sheet-day"></div>
+          <div class="sheet-wd" id="sheet-wd">?</div>
+        </div>
+        <div class="dial-box">
+          <svg id="dial" viewBox="0 0 200 200" role="img" aria-label="Week dial showing the running total"></svg>
+          <p class="dial-cap" id="dial-cap"></p>
+        </div>
+      </div>
+      <div style="display:grid;gap:0.9rem;min-width:0">
+        <ol class="steps" id="steps"></ol>
+        <div class="step-actions">
+          <button type="button" class="primary" id="step-next">Reveal next step</button>
+          <button type="button" id="step-all">Reveal all</button>
+          <button type="button" id="step-reset">Start over</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="codes" aria-labelledby="codes-h">
+    <div class="sec-head">
+      <div>
+        <h2 id="codes-h">The codes</h2>
+        <p class="lede">These are the only things you have to memorize. Cover the answers to test yourself, then tap a hidden code to check it.</p>
+      </div>
+      <label class="toggle" for="cover"><input type="checkbox" id="cover"> Cover the answers</label>
+    </div>
+    <div class="ref-grid">
+      <article class="ref">
+        <h3>Weekdays</h3>
+        <div class="table-scroll">
+          <table class="codes grid7">
+            <tr><th class="sun">Sun</th><th>Mon</th><th>Tue</th><th>Wed</th><th>Thu</th><th>Fri</th><th>Sat</th></tr>
+            <tr><td><span class="c" tabindex="0">0</span></td><td><span class="c" tabindex="0">1</span></td><td><span class="c" tabindex="0">2</span></td><td><span class="c" tabindex="0">3</span></td><td><span class="c" tabindex="0">4</span></td><td><span class="c" tabindex="0">5</span></td><td><span class="c" tabindex="0">6</span></td></tr>
+          </table>
+        </div>
+        <p class="tip">Sunday is 0, and the rest follow in order. A total of 7 is Sunday again.</p>
+      </article>
+
+      <article class="ref">
+        <h3>Months</h3>
+        <div class="table-scroll">
+          <table class="codes">
+            <tr><th scope="row">Q1</th><td>Jan <span class="c" tabindex="0">6</span></td><td>Feb <span class="c" tabindex="0">2</span></td><td>Mar <span class="c" tabindex="0">2</span></td></tr>
+            <tr><th scope="row">Q2</th><td>Apr <span class="c" tabindex="0">5</span></td><td>May <span class="c" tabindex="0">0</span></td><td>Jun <span class="c" tabindex="0">3</span></td></tr>
+            <tr><th scope="row">Q3</th><td>Jul <span class="c" tabindex="0">5</span></td><td>Aug <span class="c" tabindex="0">1</span></td><td>Sep <span class="c" tabindex="0">4</span></td></tr>
+            <tr><th scope="row">Q4</th><td>Oct <span class="c" tabindex="0">6</span></td><td>Nov <span class="c" tabindex="0">2</span></td><td>Dec <span class="c" tabindex="0">4</span></td></tr>
+          </table>
+        </div>
+        <p class="tip">Read them as <strong>622 · 503 · 514 · 624</strong>. Q1 and Q4 both start with 62. Q2 and Q3 both start with 5, and Q3 is Q2 plus one in the last two digits.</p>
+        <p class="tip">In a leap year, January and February drop by 1: January <span class="c" tabindex="0">5</span>, February <span class="c" tabindex="0">1</span>.</p>
+      </article>
+
+      <article class="ref">
+        <h3>Centuries</h3>
+        <div class="table-scroll">
+          <table class="codes">
+            <tr><td>1600s</td><td>2000s</td><td class="num"><span class="c" tabindex="0">0</span></td></tr>
+            <tr><td>1700s</td><td>2100s</td><td class="num"><span class="c" tabindex="0">5</span></td></tr>
+            <tr><td>1800s</td><td>2200s</td><td class="num"><span class="c" tabindex="0">3</span></td></tr>
+            <tr><td>1900s</td><td>2300s</td><td class="num"><span class="c" tabindex="0">1</span></td></tr>
+          </table>
+        </div>
+        <p class="tip">The pattern <strong>0 5 3 1</strong> repeats every 400 years. It's the same start as the leap-year codes, because each century also moves the weekday by 5.</p>
+      </article>
+
+      <article class="ref">
+        <h3>Leap years within a century</h3>
+        <div class="table-scroll">
+          <table class="codes grid7">
+            <tr><th>00</th><th>04</th><th>08</th><th>12</th><th>16</th><th>20</th><th>24</th></tr>
+            <tr><td><span class="c" tabindex="0">0</span></td><td><span class="c" tabindex="0">5</span></td><td><span class="c" tabindex="0">3</span></td><td><span class="c" tabindex="0">1</span></td><td><span class="c" tabindex="0">6</span></td><td><span class="c" tabindex="0">4</span></td><td><span class="c" tabindex="0">2</span></td></tr>
+          </table>
+        </div>
+        <p class="tip">Each step subtracts 2 and wraps around 7: <strong>0 5 3 1 6 4 2</strong>. After 24 the cycle starts again at 28. That's why you reduce the year mod 28 first.</p>
+      </article>
+
+      <article class="ref">
+        <h3>Mod 28 shortcut</h3>
+        <div class="table-scroll">
+          <table class="codes">
+            <tr><td>28 to 55</td><td>subtract 30, add 2</td></tr>
+            <tr><td>56 to 83</td><td>subtract 60, add 4</td></tr>
+            <tr><td>84 to 99</td><td>subtract 90, add 6</td></tr>
+          </table>
+        </div>
+        <p class="tip">Example: <strong>73 − 60 + 4 = 17</strong>. Then 17 is 16 (code 6) plus 1 year, so its year code is 7, which is 0.</p>
+      </article>
+
+      <article class="ref">
+        <h3>Why it works</h3>
+        <p class="tip">Every code counts how far a date shifts the weekday. A normal year is 365 days, which is 52 weeks and <strong>1</strong> day. So each extra year adds 1. Four years add 4 plus a leap day, which is <strong>5</strong>. That's the step in the leap-year table.</p>
+        <p class="tip">Leap years are divisible by 4. The exception is century years, which are leap years only when divisible by 400. So 2000 was a leap year, but 1900 was not.</p>
+      </article>
+    </div>
+  </section>
+
+  <section id="drills" aria-labelledby="drills-h">
+    <div class="sec-head">
+      <div>
+        <h2 id="drills-h">Drills</h2>
+        <p class="lede">Go through the drills in order. Items you miss come back a few questions later, and an item counts as mastered after three correct answers in a row. Your progress is saved in this browser.</p>
+      </div>
+      <button type="button" id="reset-progress">Reset progress</button>
+    </div>
+    <div class="tabs" role="tablist" id="drill-tabs" aria-label="Drills"></div>
+    <div class="drill" id="drill-card" role="tabpanel">
+      <div class="drill-top">
+        <p id="drill-desc"></p>
+        <div class="drill-opts" id="drill-opts" hidden>
+          <label for="date-range">Years</label>
+          <select id="date-range">
+            <option value="2000-2099">2000 to 2099</option>
+            <option value="1900-2099" selected>1900 to 2099</option>
+            <option value="1600-2399">1600 to 2399</option>
+          </select>
+        </div>
+      </div>
+      <div class="prompt-wrap">
+        <div class="prompt" id="prompt"></div>
+        <div class="prompt-sub" id="prompt-sub"></div>
+      </div>
+      <div class="answers" id="answers"></div>
+      <div class="feedback" id="feedback" aria-live="polite"></div>
+      <div class="stats" id="stats"></div>
+      <div class="mastery" id="mastery"></div>
+    </div>
+  </section>
+</div>
+
+<script>
+  const WEEKDAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  const MONTH_CODES = [6, 2, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4];
+  const QUARTERS = ["6 2 2", "5 0 3", "5 1 4", "6 2 4"];
+  const LEAP_CODES = [0, 5, 3, 1, 6, 4, 2]; // leap years 00, 04, ..., 24
+  const CENTURY_CODES = [0, 5, 3, 1]; // indexed by century % 4
+
+  const $ = (sel) => document.querySelector(sel);
+  const pad = (n) => String(n).padStart(2, "0");
+  const rand = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+  const isLeap = (y) => (y % 4 === 0 && y % 100 !== 0) || y % 400 === 0;
+  const daysIn = (y, m) => (m === 2 ? (isLeap(y) ? 29 : 28) : [4, 6, 9, 11].includes(m) ? 30 : 31);
+  const monthCode = (y, m) => MONTH_CODES[m - 1] - (isLeap(y) && m <= 2 ? 1 : 0);
+  const mod7Text = (n) => (n < 7 ? `${n} is already under 7` : `${n} − ${n - (n % 7)} = ${n % 7}`);
+
+  function mod28Text(yy) {
+    if (yy < 28) return `${pad(yy)} is already under 28`;
+    const k = Math.floor(yy / 28);
+    return `${yy} − ${28 * k} = ${pad(yy % 28)} (or ${yy} − ${30 * k} + ${2 * k})`;
+  }
+
+  function breakdown(y, m, d) {
+    const cent = Math.floor(y / 100);
+    const yy = y % 100;
+    const r = yy % 28;
+    const prev = r - (r % 4);
+    const b = {
+      y, m, d, cent, yy, r, prev,
+      dayC: d % 7,
+      monthC: monthCode(y, m),
+      leapC: LEAP_CODES[prev / 4],
+      rem: r % 4,
+      centC: CENTURY_CODES[cent % 4],
+    };
+    b.sum = b.dayC + b.monthC + b.leapC + b.rem + b.centC;
+    b.code = b.sum % 7;
+    return b;
+  }
+
+  function yearCodeText(yy) {
+    const r = yy % 28, prev = r - (r % 4), lc = LEAP_CODES[prev / 4], rem = r % 4, t = lc + rem;
+    const head = yy >= 28 ? `${mod28Text(yy)}. ` : "";
+    return `${head}Leap year ${pad(prev)} is ${lc}, plus ${rem} = ${t}${t >= 7 ? ` → ${t % 7}` : ""}`;
+  }
+
+  function shortBreakdown(b) {
+    return `day ${b.d} → ${b.dayC} · ${MONTHS[b.m - 1].slice(0, 3)} → ${b.monthC}` +
+      ` · year ${pad(b.yy)} → ${pad(b.r)} → ${pad(b.prev)} (${b.leapC}) + ${b.rem}` +
+      ` · ${b.cent}00s → ${b.centC} · total ${b.sum}${b.sum >= 7 ? ` → ${b.code}` : ""}`;
+  }
+
+  /* ---------- Walkthrough ---------- */
+
+  const walk = { b: null, steps: [], shown: 0 };
+
+  function stepsFor(b) {
+    const name = MONTHS[b.m - 1];
+    const leapJF = isLeap(b.y) && b.m <= 2;
+    const total = [b.dayC, b.monthC, b.leapC, b.rem, b.centC].join(" + ");
+    return [
+      { label: "Day", q: `What is ${b.d} mod 7?`, a: mod7Text(b.d), add: b.dayC },
+      {
+        label: "Month",
+        q: `What is the code for ${name}?`,
+        a: leapJF ? `${name} is ${MONTH_CODES[b.m - 1]}, minus 1 because ${b.y} is a leap year → ${b.monthC}` : `${name} is ${b.monthC}`,
+        add: b.monthC,
+      },
+      { label: "Year · mod 28", q: `Take ${pad(b.yy)}, the last two digits of ${b.y}, and reduce it mod 28.`, a: mod28Text(b.yy), show: pad(b.r) },
+      { label: "Year · leap year", q: `What is the last leap year at or before ${pad(b.r)}, and what is its code?`, a: `${pad(b.prev)} has code ${b.leapC}`, add: b.leapC },
+      { label: "Year · extra years", q: `How many years after ${pad(b.prev)} is ${pad(b.r)}?`, a: `${pad(b.r)} − ${pad(b.prev)} = ${b.rem}, one per year`, add: b.rem },
+      { label: "Century", q: `What is the code for the ${b.cent}00s?`, a: `The ${b.cent}00s are ${b.centC}`, add: b.centC },
+      { label: "Total", q: "Add the codes and reduce mod 7.", a: `${total} = ${b.sum}${b.sum >= 7 ? ` → ${b.code}` : ""}`, show: String(b.code) },
+      { label: "Weekday", q: `Which weekday is ${b.code}?`, a: `${b.code} is ${WEEKDAYS[b.code]}`, show: WEEKDAYS[b.code].slice(0, 3) },
+    ];
+  }
+
+  function buildDial() {
+    let s = `<circle class="dial-ring" cx="100" cy="100" r="96"/>`;
+    for (let i = 0; i < 7; i++) {
+      const ang = ((i * 360) / 7 - 90) * (Math.PI / 180);
+      const lx = 100 + 80 * Math.cos(ang), ly = 100 + 80 * Math.sin(ang);
+      const nx = 100 + 63 * Math.cos(ang), ny = 100 + 63 * Math.sin(ang);
+      s += `<text class="dial-label${i === 0 ? " sun" : ""}" data-i="${i}" x="${lx.toFixed(1)}" y="${ly.toFixed(1)}">${WEEKDAYS[i].slice(0, 3).toUpperCase()}</text>`;
+      s += `<text class="dial-num" data-i="${i}" x="${nx.toFixed(1)}" y="${ny.toFixed(1)}">${i}</text>`;
+    }
+    s += `<g id="needle"><line class="needle-line" x1="100" y1="100" x2="100" y2="50"/><circle class="needle-tip" cx="100" cy="50" r="4"/></g>`;
+    s += `<circle class="hub" cx="100" cy="100" r="5"/>`;
+    $("#dial").innerHTML = s;
+  }
+
+  function setWalkDate(y, m, d, revealAll = false) {
+    walk.b = breakdown(y, m, d);
+    walk.steps = stepsFor(walk.b);
+    walk.shown = revealAll ? walk.steps.length : 0;
+    $("#walk-date").value = `${String(y).padStart(4, "0")}-${pad(m)}-${pad(d)}`;
+    $("#walk-note").hidden = true;
+    renderWalk();
+  }
+
+  function renderWalk() {
+    const { b, steps, shown } = walk;
+    const done = shown >= steps.length;
+    $("#sheet-month").textContent = MONTHS[b.m - 1].slice(0, 3);
+    $("#sheet-year").textContent = b.y;
+    $("#sheet-day").textContent = b.d;
+    $("#sheet-wd").textContent = done ? WEEKDAYS[b.code] : "?";
+    $("#sheet").classList.toggle("solved", done);
+    $("#sheet").classList.toggle("is-sunday", done && b.code === 0);
+
+    $("#steps").innerHTML = steps.map((s, i) => {
+      const state = i < shown ? "shown" : i === shown ? "next" : "hidden";
+      const val = i < shown ? (s.add !== undefined ? `+${s.add}` : s.show) : "?";
+      const attrs = state === "next" ? ` tabindex="0" role="button" aria-label="Reveal step ${i + 1}: ${s.label}"` : "";
+      return `<li class="step" data-state="${state}"${attrs}>
+        <div class="step-main"><div class="step-label">${s.label}</div><div class="step-q">${s.q}</div><div class="step-a">${s.a}</div></div>
+        <div class="step-val">${val}</div></li>`;
+    }).join("");
+
+    const running = steps.slice(0, shown).reduce((t, s) => t + (s.add ?? 0), 0);
+    $("#needle").style.transform = `rotate(${(running * 360) / 7}deg)`;
+    document.querySelectorAll("#dial [data-i]").forEach((el) => el.classList.toggle("on", Number(el.dataset.i) === running % 7));
+    $("#dial-cap").innerHTML = shown === 0
+      ? "Start at Sunday, 0"
+      : `Running total <b>${running}</b>${running >= 7 ? ` → <b>${running % 7}</b>` : ""}`;
+
+    $("#step-next").disabled = done;
+    $("#step-all").disabled = done;
+  }
+
+  function revealNext() {
+    if (walk.shown < walk.steps.length) {
+      walk.shown++;
+      renderWalk();
+    }
+  }
+
+  $("#step-next").addEventListener("click", revealNext);
+  $("#step-all").addEventListener("click", () => { walk.shown = walk.steps.length; renderWalk(); });
+  $("#step-reset").addEventListener("click", () => { walk.shown = 0; renderWalk(); });
+  $("#steps").addEventListener("click", (e) => { if (e.target.closest('.step[data-state="next"]')) revealNext(); });
+  $("#steps").addEventListener("keydown", (e) => {
+    if ((e.key === "Enter" || e.key === " ") && e.target.closest('.step[data-state="next"]')) {
+      e.preventDefault();
+      revealNext();
+      const next = $('.step[data-state="next"]');
+      if (next) next.focus();
+    }
+  });
+  $("#walk-random").addEventListener("click", () => {
+    const y = rand(1900, 2099), m = rand(1, 12);
+    setWalkDate(y, m, rand(1, daysIn(y, m)));
+  });
+  $("#walk-today").addEventListener("click", () => {
+    const t = new Date();
+    setWalkDate(t.getFullYear(), t.getMonth() + 1, t.getDate());
+  });
+  $("#walk-date").addEventListener("change", (e) => {
+    const match = /^(\d{4,})-(\d{2})-(\d{2})$/.exec(e.target.value);
+    if (!match) return;
+    const [y, m, d] = match.slice(1).map(Number);
+    if (y < 1583 || m < 1 || m > 12 || d < 1 || d > daysIn(y, m)) {
+      $("#walk-note").hidden = false;
+      return;
+    }
+    setWalkDate(y, m, d);
+  });
+
+  /* ---------- Code sheet ---------- */
+
+  $("#cover").addEventListener("change", (e) => {
+    document.body.classList.toggle("covered", e.target.checked);
+    document.querySelectorAll(".c.peek").forEach((el) => el.classList.remove("peek"));
+  });
+  const peek = (el) => { if (document.body.classList.contains("covered")) el.classList.toggle("peek"); };
+  $("#codes").addEventListener("click", (e) => { const c = e.target.closest(".c"); if (c) peek(c); });
+  $("#codes").addEventListener("keydown", (e) => {
+    const c = e.target.closest(".c");
+    if (c && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); peek(c); }
+  });
+
+  /* ---------- Drills ---------- */
+
+  const STORE = "calendar-trick-progress-v1";
+  const TAB_STORE = "calendar-trick-tab";
+  let prog = {};
+  try { prog = JSON.parse(localStorage.getItem(STORE)) || {}; } catch (e) { prog = {}; }
+  const save = () => { try { localStorage.setItem(STORE, JSON.stringify(prog)); } catch (e) {} };
+
+  function record(key, ok) {
+    const p = prog[key] || (prog[key] = { s: 0, n: 0, w: 0 });
+    p.n++;
+    p.last = ok ? 1 : 0;
+    if (ok) p.s++;
+    else { p.s = 0; p.w++; }
+    save();
+  }
+
+  const DRILLS = [
+    {
+      id: "weekday", name: "Weekdays",
+      desc: "Weekday names to numbers and back. Sunday is 0.",
+      items: [
+        ...WEEKDAYS.map((w, i) => ({ key: `wn${i}`, chip: w.slice(0, 3), prompt: w, sub: "its number", answer: i, input: "digit", explain: `${w} is ${i}. Count up from Sunday = 0.` })),
+        ...WEEKDAYS.map((w, i) => ({ key: `wd${i}`, chip: String(i), prompt: String(i), sub: "which weekday?", answer: i, input: "weekday", keys: false, explain: `${i} is ${w}.` })),
+      ],
+    },
+    {
+      id: "day", name: "Day mod 7",
+      desc: "Reduce the day of the month mod 7. Subtract the largest multiple of 7 that fits.",
+      items: Array.from({ length: 31 }, (_, k) => {
+        const d = k + 1;
+        return { key: `d${d}`, chip: String(d), prompt: String(d), sub: "day mod 7", answer: d % 7, input: "digit", explain: `${mod7Text(d)}.` };
+      }),
+    },
+    {
+      id: "month", name: "Months",
+      desc: "Month codes, including January and February in a leap year.",
+      items: [
+        ...MONTHS.map((name, i) => ({
+          key: `m${i + 1}`, chip: name.slice(0, 3), prompt: name, sub: "month code", answer: MONTH_CODES[i], input: "digit",
+          explain: `${name} is ${MONTH_CODES[i]}. Q${Math.floor(i / 3) + 1} reads ${QUARTERS[Math.floor(i / 3)]}.`,
+        })),
+        { key: "m1L", chip: "Jan LY", prompt: "January", sub: "in a leap year", answer: 5, input: "digit", explain: "January is 6, minus 1 in a leap year = 5." },
+        { key: "m2L", chip: "Feb LY", prompt: "February", sub: "in a leap year", answer: 1, input: "digit", explain: "February is 2, minus 1 in a leap year = 1." },
+      ],
+    },
+    {
+      id: "century", name: "Centuries",
+      desc: "Century codes. The pattern 0 5 3 1 repeats every 400 years.",
+      items: [16, 17, 18, 19, 20, 21, 22, 23].map((c) => ({
+        key: `c${c}`, chip: `${c}00`, prompt: `${c}00s`, sub: "century code", answer: CENTURY_CODES[c % 4], input: "digit",
+        explain: `The ${c}00s are ${CENTURY_CODES[c % 4]}. The pattern is 0 5 3 1, starting at 1600 and again at 2000.`,
+      })),
+    },
+    {
+      id: "leap", name: "Leap years",
+      desc: "Codes for the leap years 00 to 24 in a century. Each one is 2 less than the last.",
+      items: LEAP_CODES.map((code, i) => ({
+        key: `l${i * 4}`, chip: pad(i * 4), prompt: pad(i * 4), sub: "leap year code", answer: code, input: "digit",
+        explain: `${pad(i * 4)} is ${code}. The sequence is 0 5 3 1 6 4 2, subtracting 2 each time.`,
+      })),
+    },
+    {
+      id: "mod28", name: "Mod 28",
+      desc: "Reduce a two-digit year mod 28. Type the answer and press Enter.",
+      items: Array.from({ length: 72 }, (_, k) => {
+        const n = k + 28;
+        return { key: `r${n}`, chip: String(n), prompt: String(n), sub: "mod 28", answer: n % 28, input: "number", explain: `${mod28Text(n)}.` };
+      }),
+    },
+    {
+      id: "year", name: "Year codes",
+      desc: "The whole year code for the last two digits: reduce mod 28, take the leap year code, then add the extra years.",
+      items: Array.from({ length: 100 }, (_, yy) => {
+        const r = yy % 28, prev = r - (r % 4);
+        return { key: `y${yy}`, chip: pad(yy), prompt: pad(yy), sub: "year code", answer: (LEAP_CODES[prev / 4] + (r % 4)) % 7, input: "digit", explain: `${yearCodeText(yy)}.` };
+      }),
+    },
+    {
+      id: "date", name: "Full dates",
+      desc: "Put it all together. Number keys 0 to 6 pick the weekday with that code.",
+      generate: true,
+    },
+  ];
+
+  const drill = { id: "weekday", item: null, locked: false, t0: 0, count: 0, lastKey: null, retry: [], sessions: {} };
+  const current = () => DRILLS.find((d) => d.id === drill.id);
+  const session = () => drill.sessions[drill.id] || (drill.sessions[drill.id] = { right: 0, total: 0, streak: 0, best: 0, times: [] });
+  const mastered = (d) => d.items.filter((it) => (prog[it.key]?.s ?? 0) >= 3).length;
+
+  function pick(d) {
+    const due = drill.retry.findIndex((r) => r.due <= drill.count && r.key !== drill.lastKey);
+    if (due >= 0) {
+      const key = drill.retry.splice(due, 1)[0].key;
+      return d.items.find((it) => it.key === key);
+    }
+    const weights = d.items.map((it) => {
+      if (it.key === drill.lastKey && d.items.length > 1) return 0;
+      const p = prog[it.key];
+      if (!p) return 4;
+      if (p.s >= 3) return 1;
+      return 6 - p.s * 1.5 + (p.last === 0 ? 4 : 0);
+    });
+    let r = Math.random() * weights.reduce((a, b) => a + b, 0);
+    for (let i = 0; i < d.items.length; i++) {
+      r -= weights[i];
+      if (r < 0) return d.items[i];
+    }
+    return d.items[d.items.length - 1];
+  }
+
+  function dateItem() {
+    const [lo, hi] = $("#date-range").value.split("-").map(Number);
+    const y = rand(lo, hi), m = rand(1, 12), d = rand(1, daysIn(y, m));
+    const b = breakdown(y, m, d);
+    return {
+      key: `date-${y}-${m}-${d}`, prompt: `${d} ${MONTHS[m - 1].slice(0, 3)} ${y}`, sub: "which weekday?",
+      answer: b.code, input: "weekday", explain: shortBreakdown(b), walk: [y, m, d],
+    };
+  }
+
+  function renderTabs() {
+    $("#drill-tabs").innerHTML = DRILLS.map((d) => {
+      const n = d.generate ? "" : `<span class="n">${mastered(d)}/${d.items.length}</span>`;
+      return `<button type="button" class="tab" role="tab" data-id="${d.id}" aria-selected="${d.id === drill.id}">${d.name}${n}</button>`;
+    }).join("");
+  }
+
+  function renderStats() {
+    const s = session();
+    const last = s.times.length ? s.times[s.times.length - 1].toFixed(1) : "–";
+    const avg = s.times.length ? (s.times.reduce((a, b) => a + b, 0) / s.times.length).toFixed(1) : "–";
+    $("#stats").innerHTML =
+      `<span>Session <b>${s.right}/${s.total}</b></span><span>Streak <b>${s.streak}</b></span>` +
+      `<span>Best <b>${s.best}</b></span><span>Last <b>${last}s</b></span><span>Avg <b>${avg}s</b></span>`;
+  }
+
+  function chipClass(key) {
+    const p = prog[key];
+    if (!p) return "";
+    if (p.s >= 3) return "done";
+    if (p.last === 0) return "miss";
+    return "learning";
+  }
+
+  function renderMastery() {
+    const d = current();
+    const box = $("#mastery");
+    if (d.generate) {
+      box.innerHTML = `<div class="mastery-label">Full dates aren't tracked item by item. Your session score and times are above.</div>`;
+      return;
+    }
+    const done = mastered(d);
+    const legend = `<div class="legend"><span><i></i>not seen</span><span><i class="l-miss"></i>missed last time</span><span><i class="l-learning"></i>learning</span><span><i class="l-done"></i>mastered</span></div>`;
+    if (d.items.length <= 31) {
+      box.innerHTML = `<div class="mastery-label">${done} of ${d.items.length} mastered</div>` +
+        `<div class="chips">${d.items.map((it) => `<span class="chip ${chipClass(it.key)}">${it.chip}</span>`).join("")}</div>` + legend;
+    } else {
+      const trouble = d.items.filter((it) => chipClass(it.key) === "miss");
+      box.innerHTML = `<div class="mastery-label">${done} of ${d.items.length} mastered</div>` +
+        `<div class="meter"><span style="width:${(100 * done) / d.items.length}%"></span></div>` +
+        (trouble.length ? `<div class="mastery-label">Missed last time</div><div class="chips">${trouble.map((it) => `<span class="chip miss">${it.chip}</span>`).join("")}</div>` : "");
+    }
+  }
+
+  function nextQuestion(focus = true) {
+    const d = current();
+    drill.count++;
+    const item = d.generate ? dateItem() : pick(d);
+    drill.item = item;
+    drill.lastKey = item.key;
+    drill.locked = false;
+    $("#prompt").textContent = item.prompt;
+    $("#prompt-sub").textContent = item.sub;
+    $("#feedback").innerHTML = "";
+    const answers = $("#answers");
+    if (item.input === "number") {
+      answers.innerHTML = `<form class="number-answer" id="num-form"><input id="num-input" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" maxlength="2" aria-label="Your answer"><button type="submit" class="primary">Check</button></form>`;
+      $("#num-form").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const v = parseInt($("#num-input").value, 10);
+        if (!Number.isNaN(v)) answer(v);
+      });
+      if (focus) $("#num-input").focus({ preventScroll: true });
+    } else {
+      const labels = item.input === "weekday" ? WEEKDAYS.map((w) => w.slice(0, 3)) : [0, 1, 2, 3, 4, 5, 6];
+      answers.innerHTML = labels.map((l, i) => `<button type="button" data-v="${i}" aria-label="${item.input === "weekday" ? WEEKDAYS[i] : i}">${l}</button>`).join("");
+    }
+    drill.t0 = performance.now();
+    renderStats();
+    renderMastery();
+  }
+
+  function answer(v) {
+    if (drill.locked) return;
+    drill.locked = true;
+    const it = drill.item;
+    const ok = v === it.answer;
+    const secs = (performance.now() - drill.t0) / 1000;
+    const s = session();
+    s.total++;
+    if (ok) {
+      s.right++;
+      s.streak++;
+      s.best = Math.max(s.best, s.streak);
+      s.times.push(secs);
+    } else {
+      s.streak = 0;
+      if (!current().generate) drill.retry.push({ key: it.key, due: drill.count + 3 });
+    }
+    if (!current().generate) record(it.key, ok);
+
+    if (it.input === "number") {
+      $("#num-input").classList.add(ok ? "right" : "wrong");
+      $("#num-input").readOnly = true;
+    } else {
+      document.querySelectorAll("#answers button").forEach((b) => {
+        const bv = Number(b.dataset.v);
+        if (bv === it.answer) b.classList.add("right");
+        else if (bv === v) b.classList.add("wrong");
+      });
+    }
+
+    const label = it.input === "weekday" ? WEEKDAYS[it.answer] : it.answer;
+    if (ok) {
+      $("#feedback").innerHTML = `<span class="ok">Correct · ${secs.toFixed(1)}s</span>`;
+      setTimeout(() => { if (drill.item === it) nextQuestion(); }, 700);
+    } else {
+      $("#feedback").innerHTML =
+        `<span class="no">The answer is ${label}.</span><span class="why">${it.explain}</span>` +
+        `<div class="fb-actions"><button type="button" class="primary" id="next-btn">Next question</button>` +
+        (it.walk ? `<button type="button" id="walk-btn">Walk through this date</button>` : "") + `</div>`;
+      $("#next-btn").addEventListener("click", () => nextQuestion());
+      if (it.walk) {
+        $("#walk-btn").addEventListener("click", () => {
+          setWalkDate(...it.walk);
+          $("#walk").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+        });
+      }
+      $("#next-btn").focus({ preventScroll: true });
+    }
+    renderStats();
+    renderMastery();
+    renderTabs();
+  }
+
+  function switchDrill(id, focus = true) {
+    drill.id = DRILLS.some((d) => d.id === id) ? id : "weekday";
+    drill.retry = [];
+    drill.lastKey = null;
+    try { localStorage.setItem(TAB_STORE, drill.id); } catch (e) {}
+    $("#drill-desc").textContent = current().desc;
+    $("#drill-opts").hidden = !current().generate;
+    renderTabs();
+    nextQuestion(focus);
+  }
+
+  $("#drill-tabs").addEventListener("click", (e) => {
+    const t = e.target.closest(".tab");
+    if (t) switchDrill(t.dataset.id);
+  });
+  $("#answers").addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-v]");
+    if (b) answer(Number(b.dataset.v));
+  });
+  $("#date-range").addEventListener("change", () => nextQuestion());
+
+  document.addEventListener("keydown", (e) => {
+    if (e.target.matches("input, select, textarea") || e.metaKey || e.ctrlKey || e.altKey) return;
+    const it = drill.item;
+    if (!it || drill.locked || it.input === "number" || it.keys === false) return;
+    if (!/^[0-6]$/.test(e.key)) return;
+    const r = $("#drill-card").getBoundingClientRect();
+    if (r.bottom < 0 || r.top > innerHeight) return;
+    e.preventDefault();
+    answer(Number(e.key));
+  });
+
+  let resetTimer = null;
+  $("#reset-progress").addEventListener("click", (e) => {
+    const btn = e.currentTarget;
+    if (!btn.classList.contains("armed")) {
+      btn.classList.add("armed");
+      btn.textContent = "Click again to erase all progress";
+      resetTimer = setTimeout(() => { btn.classList.remove("armed"); btn.textContent = "Reset progress"; }, 4000);
+      return;
+    }
+    clearTimeout(resetTimer);
+    btn.classList.remove("armed");
+    btn.textContent = "Progress erased";
+    setTimeout(() => { btn.textContent = "Reset progress"; }, 2000);
+    prog = {};
+    drill.sessions = {};
+    save();
+    switchDrill(drill.id);
+  });
+
+  /* ---------- Start ---------- */
+
+  buildDial();
+  const today = new Date();
+  setWalkDate(today.getFullYear(), today.getMonth() + 1, today.getDate());
+  let savedTab = "weekday";
+  try { savedTab = localStorage.getItem(TAB_STORE) || "weekday"; } catch (e) {}
+  switchDrill(savedTab, false);
+</script>
+</body>
+</html>
