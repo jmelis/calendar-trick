@@ -33,7 +33,7 @@ function getMonthDays(year, month) {
     } else {
       return 28;
     }
-  } else if ([1, 3, 5, 7, 8, 10, 12]) {
+  } else if ([1, 3, 5, 7, 8, 10, 12].includes(month)) {
     return 31;
   } else {
     return 30;
@@ -85,10 +85,6 @@ class CalendarDay {
 
   remCode() {
     return this.centuryYear % 4;
-  }
-
-  prevLeapYearCode() {
-    return [0, 5, 3, 1, 6, 4, 2][this.prevLeapYear / 4];
   }
 
   centuryCode() {
