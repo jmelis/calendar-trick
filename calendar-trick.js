@@ -110,102 +110,144 @@ class CalendarDay {
   }
 }
 
-function listToUl(list) {
-  let ul = document.createElement("ul");
-  list.forEach((e) => {
-    let li = document.createElement("li");
-    li.innerText = e;
-    ul.appendChild(li);
-  });
-  return ul;
+const MONTHS = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
+
+let calday = null;
+let answered = false;
+
+function pad(n) {
+  return String(n).padStart(2, "0");
 }
 
-function generate() {
-  tTemp = new Date();
-  updateScore();
-  // Activate all buttons
-  document
-    .querySelectorAll("#solutions button")
-    .forEach((e) => (e["disabled"] = false));
-
-  // hide help
-  document.getElementById("help").style.display = "none";
-
-  // Generate date
+function parseYears(text) {
   let yearsList = [];
-  const years = document.getElementById("years").value;
-  window.location.hash = "#" + years;
-  years.split(",").forEach((segment) => {
+  text.split(",").forEach((segment) => {
     if (segment.includes("-")) {
-      const [yf, yt] = segment.split("-");
-      for (i = parseInt(yf); i <= parseInt(yt); i++) {
+      const [yf, yt] = segment.split("-").map((s) => parseInt(s));
+      for (let i = yf; i <= yt; i++) {
         yearsList.push(i);
       }
     } else {
       yearsList.push(parseInt(segment));
     }
   });
+  return yearsList.filter((y) => y >= 1583 && y <= 9999);
+}
 
-  year = randomElement(yearsList);
-  month = randomIntFromInterval(1, 12);
-  day = randomIntFromInterval(1, getMonthDays(year, month));
+function generate() {
+  const input = document.getElementById("years");
+  let yearsList = parseYears(input.value);
+  document.getElementById("years-error").hidden = yearsList.length > 0;
+  if (!yearsList.length) {
+    return;
+  }
+  window.location.hash = "#" + input.value;
 
+  const year = randomElement(yearsList);
+  const month = randomIntFromInterval(1, 12);
+  const day = randomIntFromInterval(1, getMonthDays(year, month));
   calday = new CalendarDay(year, month, day);
+  answered = false;
 
-  document.getElementById("date").innerText = `${year}-${month}-${day}`;
-  document.getElementById("solution").innerText = calday.weekday();
+  document.querySelectorAll("#solutions button").forEach((b) => {
+    b.disabled = false;
+    b.classList.remove("right", "wrong");
+  });
+  document.getElementById("date").innerText = `${day} ${MONTHS[month - 1]} ${year}`;
+  document.getElementById("help").hidden = true;
+  document.getElementById("help-btn").innerText = "Show the working";
+  renderHelp();
+  updateScore();
+  tTemp = new Date();
+}
 
-  document.getElementById("help").innerHTML = `<p>Equivalent year is ${
-    calday.centuryYear
-  }, ${isLeapYear(year) ? "" : "not"} a LY.</p>
-    <p>Previous LY is  ${
-      calday.prevLeapYear
-    }: code ${calday.prevLeapYearCode()}.</p>
-    <p>Years since LY: code ${calday.remCode()}.</p>
-    <p>Century ${calday.century}00: code ${calday.centuryCode()}.</p>
-    <p>Month: code ${calday.monthCode()}.</p>
-    <p>Day: code ${calday.dayCode()}.</p>
-    <p>Code: ${calday.code()} therefore it is a ${calday.weekday()}.</p>`;
+function renderHelp() {
+  const codes = calday.codes();
+  const yy = calday.year % 100;
+  const eq = pad(calday.centuryYear);
+  const prev = pad(calday.prevLeapYear);
+  const leapNote =
+    isLeapYear(calday.year) && calday.month <= 2 ? " (leap year)" : "";
+  const rows = [
+    ["Day", `${calday.day} mod 7`, codes.day],
+    ["Month", MONTHS[calday.month - 1] + leapNote, codes.month],
+    [
+      "Leap year",
+      `${yy >= 28 ? `${pad(yy)} → ${eq}, ` : ""}last leap year ${prev}`,
+      codes.prevLeapYear,
+    ],
+    ["Extra years", `${eq} − ${prev}`, codes.rem],
+    ["Century", `${calday.century}00s`, codes.century],
+  ];
+  const sum = Object.values(codes).reduce((a, b) => a + b);
+  const link = `learn.html?date=${calday.year}-${calday.month}-${calday.day}#walk`;
+
+  document.getElementById("help").innerHTML = `
+    <ol class="working-steps">${rows
+      .map(
+        ([label, text, value]) =>
+          `<li><span class="w-label">${label}</span><span class="w-text">${text}</span><span class="w-val">+${value}</span></li>`
+      )
+      .join("")}</ol>
+    <p class="w-total">Total ${sum}${sum >= 7 ? ` → ${calday.code()}` : ""}, so it's a <b>${calday.weekday()}</b>.</p>
+    <a href="${link}">Walk through this date step by step</a>`;
+}
+
+function toggleHelp() {
+  const help = document.getElementById("help");
+  help.hidden = !help.hidden;
+  document.getElementById("help-btn").innerText = help.hidden
+    ? "Show the working"
+    : "Hide the working";
 }
 
 function updateScore() {
   document.getElementById("score").innerText = `${WINS}/${ATTEMPTS}`;
 }
 
-function showHelp() {
-  document.getElementById("help").style.display = "block";
-}
-
 function check(btn) {
-  const weekday = document.getElementById("solution").innerText;
-  const val = btn.innerText;
-  if (weekday == val) {
+  if (answered || btn.disabled) {
+    return;
+  }
+  ATTEMPTS++;
+  if (Number(btn.dataset.day) == calday.code()) {
     WINS++;
-    ATTEMPTS++;
-
-    updateScore();
+    answered = true;
+    btn.classList.add("right");
 
     const lastTime = (new Date() - tTemp) / 1000;
-
     totalTime += lastTime;
-    document.getElementById("last-time").innerText = lastTime.toFixed(1);
-    document.getElementById("avg-time").innerText = (totalTime / WINS).toFixed(
-      1
-    );
+    document.getElementById("last-time").innerText = lastTime.toFixed(1) + "s";
+    document.getElementById("avg-time").innerText =
+      (totalTime / WINS).toFixed(1) + "s";
 
-    document.getElementById("btn-go").click();
-  } else {
-    ATTEMPTS++;
     updateScore();
-    btn["disabled"] = true;
+    setTimeout(generate, 450);
+  } else {
+    btn.classList.add("wrong");
+    btn.disabled = true;
+    updateScore();
   }
 }
 
 function checkAlgorithm() {
   // verify algorithm works
-  for (y = 1600; y <= 2400; y++) {
-    for (m = 1; m <= 12; m++) {
-      for (d = 1; d <= getMonthDays(y, m); d++) {
+  for (let y = 1600; y <= 2400; y++) {
+    for (let m = 1; m <= 12; m++) {
+      for (let d = 1; d <= getMonthDays(y, m); d++) {
         const calday = new CalendarDay(y, m, d);
         const checkdate = new Date(y, m - 1, d);
         if (calday.code() != checkdate.getDay()) {
@@ -219,8 +261,20 @@ function checkAlgorithm() {
   }
 }
 
+// Number keys 0-6 answer with the weekday that has that code.
+document.addEventListener("keydown", (e) => {
+  if (e.target.matches("input") || e.metaKey || e.ctrlKey || e.altKey) {
+    return;
+  }
+  if (/^[0-6]$/.test(e.key)) {
+    check(document.querySelector(`#solutions button[data-day="${e.key}"]`));
+  }
+});
+
 if (window.location.hash) {
-  document.getElementById("years").value = window.location.hash.substring(1);
+  document.getElementById("years").value = decodeURIComponent(
+    window.location.hash.substring(1)
+  );
 }
 
 checkAlgorithm();
